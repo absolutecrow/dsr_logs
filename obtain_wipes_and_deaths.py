@@ -56,11 +56,12 @@ COL_KAEDE = 'J'
 COL_MITHRIL = 'K'
 COL_FERESIA = 'L'
 COL_RALF = 'M'
+COL_AVERAGE_FIGHT_PERCENTAGE = 'D'
 
 access_token = obtain_access_token()
 
 # Query API for the Codes Listed
-for i in range(2,sheet.max_row):
+for i in range(3,sheet.max_row):
     current_location = f"{COL_LOGS}{i}"
 
     if (sheet[current_location].value is not None):
@@ -75,6 +76,7 @@ for i in range(2,sheet.max_row):
                     fights(encounterID: 1065){{
                         id
                         endTime
+                        fightPercentage
                     }}
                 }}
             }}
@@ -105,8 +107,10 @@ for i in range(2,sheet.max_row):
 
         # Iterate through each fight in the report and add up the deaths.
         fight_counter = 0
+        sum = 0.00
         for fight in fights['data']['reportData']['report']['fights']:
             fight_counter += 1
+            sum += fight['fightPercentage']
             graphql_query = f"""
             {{
                 reportData{{
@@ -121,30 +125,31 @@ for i in range(2,sheet.max_row):
             except:
                 deaths = query_fflogs(graphql_query)
             
-            death_counter = search_through_deaths_for_name(deaths, sheet[COL_CES][0].value)
+            death_counter = search_through_deaths_for_name(deaths, sheet[f"{COL_CES}2"].value)
             sheet[f"{COL_CES}{i}"] = int(death_counter) + int(sheet[f"{COL_CES}{i}"].value)
 
-            death_counter = search_through_deaths_for_name(deaths, sheet[COL_JAMIE][0].value)
+            death_counter = search_through_deaths_for_name(deaths, sheet[f"{COL_JAMIE}2"].value)
             sheet[f"{COL_JAMIE}{i}"] = int(death_counter) + int(sheet[f"{COL_JAMIE}{i}"].value)
 
-            death_counter = search_through_deaths_for_name(deaths, sheet[COL_FAYTH][0].value)
+            death_counter = search_through_deaths_for_name(deaths, sheet[f"{COL_FAYTH}2"].value)
             sheet[f"{COL_FAYTH}{i}"] = int(death_counter) + int(sheet[f"{COL_FAYTH}{i}"].value)
 
-            death_counter = search_through_deaths_for_name(deaths, sheet[COL_EVE][0].value)
+            death_counter = search_through_deaths_for_name(deaths, sheet[f"{COL_EVE}2"].value)
             sheet[f"{COL_EVE}{i}"] = int(death_counter) + int(sheet[f"{COL_EVE}{i}"].value)
 
-            death_counter = search_through_deaths_for_name(deaths, sheet[COL_KAEDE][0].value)
+            death_counter = search_through_deaths_for_name(deaths, sheet[f"{COL_KAEDE}2"].value)
             sheet[f"{COL_KAEDE}{i}"] = int(death_counter) + int(sheet[f"{COL_KAEDE}{i}"].value)
 
-            death_counter = search_through_deaths_for_name(deaths, sheet[COL_MITHRIL][0].value)
+            death_counter = search_through_deaths_for_name(deaths, sheet[f"{COL_MITHRIL}2"].value)
             sheet[f"{COL_MITHRIL}{i}"] = int(death_counter) + int(sheet[f"{COL_MITHRIL}{i}"].value)
 
-            death_counter = search_through_deaths_for_name(deaths, sheet[COL_FERESIA][0].value)
+            death_counter = search_through_deaths_for_name(deaths, sheet[f"{COL_FERESIA}2"].value)
             sheet[f"{COL_FERESIA}{i}"] = int(death_counter) + int(sheet[f"{COL_FERESIA}{i}"].value)
 
-            death_counter = search_through_deaths_for_name(deaths, sheet[COL_RALF][0].value)
+            death_counter = search_through_deaths_for_name(deaths, sheet[f"{COL_RALF}2"].value)
             sheet[f"{COL_RALF}{i}"] = int(death_counter) + int(sheet[f"{COL_RALF}{i}"].value)
 
         sheet[f"{COL_WIPES}{i}"] = int(fight_counter)
+        sheet[f"{COL_AVERAGE_FIGHT_PERCENTAGE}{i}"] = float(sum/fight_counter)
 
 workbook.save(logs_excel)
