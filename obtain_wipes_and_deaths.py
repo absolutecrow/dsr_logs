@@ -1,33 +1,45 @@
-from posixpath import basename
-from time import sleep
-from selenium import webdriver
-from ahk import AHK
+import requests
+import json
+import re
 from openpyxl import Workbook
 from openpyxl import load_workbook
-import glob
-import re
-import codecs
+from datetime import datetime
+import tzlocal
 
-def download_fflogs_report(fileName):
-    ahk.run_script("Send,^s")
-    ahk.run_script("WinWaitActive, Save As,,2")
-    ahk.run_script("WinActivate, Save As")
-    ahk.run_script(f"SendInput, C:\\Users\\AbsoluteCrow\\Documents\\Programming\\Python\\dsr_logs\\reports\\{fileName}.html")
-    sleep(2)
-    ahk.run_script("SendInput, {Enter}")
+def obtain_access_token():
+    url = "https://www.fflogs.com/oauth/token"
 
-def open_fflogs_report(URL):
-    driver.get(f"{URL}#boss=1065&difficulty=100&wipes=1&type=deaths")
+    payload={'grant_type': 'client_credentials'}
+    file = open("C:\\Users\\AbsoluteCrow\\Documents\\Programming\\Python\\fflogs_keys.json")
+    fflogs_keys = json.load(file)
 
-# Set Selenium Variables
-ahk = AHK()
-driver = webdriver.Firefox(executable_path='C:/Users/AbsoluteCrow/Documents/Programming/Python/dsr_logs/geckodriver.exe')
+    headers = {
+    'Authorization': f"{fflogs_keys['Auth_Basic']}"
+    }
 
-# Obtain current existing reports
-current_reports = []
-for file in glob.glob("C:\\Users\\AbsoluteCrow\\Documents\\Programming\\Python\\dsr_logs\\reports\\*.html"):
-    baseName = re.search(r"reports\\(.+)\.html", file).group(1)
-    current_reports.append(baseName)
+    response = requests.request("POST", url, headers=headers, data=payload).json()
+    return response['access_token']
+
+def query_fflogs(graphql_query):
+    url = "https://www.fflogs.com/api/v2/client"
+
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+
+    data = {"query": graphql_query}
+    json_data = json.dumps(data)
+
+    response = requests.request("POST", url, headers=headers, data=json_data).json()
+    return response
+
+def search_through_deaths_for_name(deaths, name):
+    death_counter = 0
+    for death in deaths['data']['reportData']['report']['table']['data']['entries']:
+        if (death['name'] == name):
+            death_counter += 1
+    return death_counter
 
 # Set Excel Sheet Variables
 logs_excel = 'P:/My Drive/DSR - Logs.xlsx'
@@ -45,70 +57,77 @@ COL_MITHRIL = 'K'
 COL_FERESIA = 'L'
 COL_RALF = 'M'
 
-# Download reports that do not exist
+access_token = obtain_access_token()
+
+# Query API for the Codes Listed
 for i in range(2,sheet.max_row):
     current_location = f"{COL_LOGS}{i}"
 
     if (sheet[current_location].value is not None):
+
+        # Iterate through the excel sheet url to obtain the URL of reach report.
         code = re.search(r"reports\/(.+)\/", sheet[current_location].value).group(1)
-        if (code not in current_reports):
-            open_fflogs_report(sheet[current_location].value)
-            sleep(4)
-            download_fflogs_report(code)
-            sleep(4)
+        graphql_query = f"""
+        {{
+            reportData{{
+                report(code: "{code}"){{
+                    startTime
+                    fights(encounterID: 1065){{
+                        id
+                        endTime
+                    }}
+                }}
+            }}
+        }}
+        """
+        print(f"Processing {code}")
+        fights = query_fflogs(graphql_query) # Query against the FF Logs api to obtain the fights in the URL
 
-# Parse the HTML to obtain Dates, Wipes and Deaths
-for file in glob.glob("C:\\Users\\AbsoluteCrow\\Documents\\Programming\\Python\\dsr_logs\\reports\\*.html"):
-    htmlString = codecs.open(file, "r", encoding='UTF-8').read()
-    baseName = re.search(r"reports\\(.+)\.html", file).group(1)
-    date = re.search(r'id="report-start-date">(.+)<\/span>', htmlString).group(1)
-    wipes = re.search(r'class="wipe"> Wipes \((.+)\)<\/span><\/div>', htmlString).group(1)
+        # Extract and Store the date in the Excel Sheet column C
+        local_timezone = tzlocal.get_localzone()
+        unix_timestamp = float(fights['data']['reportData']['report']['startTime'])/1000
+        local_time = datetime.fromtimestamp(unix_timestamp, local_timezone)
+        sheet[f"{COL_DATE}{i}"] = local_time.strftime(r"%m/%d/%Y")
 
-    try:
-        deaths_jamie = re.search(r'Jamie Rosefall\s*<\/a>\s*<\/td><td class="main-table-number sorting_1" style="width:30px">(\d+)', htmlString).group(1)
-    except:
-        deaths_jamie = 0
-    try:
-        deaths_cesyanis = re.search(r'Cesyanis Corvus\s*<\/a>\s*<\/td><td class="main-table-number sorting_1" style="width:30px">(\d+)', htmlString).group(1)
-    except:
-        deaths_cesyanis = 0
-    try:
-        deaths_fayth = re.search(r'Fayth Delarosa\s*<\/a>\s*<\/td><td class="main-table-number sorting_1" style="width:30px">(\d+)', htmlString).group(1)
-    except:
-        deaths_fayth = 0
-    try:
-        deaths_evlesk = re.search(r'Evlesk Soimer\s*<\/a>\s*<\/td><td class="main-table-number sorting_1" style="width:30px">(\d+)', htmlString).group(1)
-    except:
-        deaths_evlesk = 0
-    try:
-        deaths_kaede = re.search(r'Kaede Yasashi\s*<\/a>\s*<\/td><td class="main-table-number sorting_1" style="width:30px">(\d+)', htmlString).group(1)
-    except:
-        deaths_kaede = 0
-    try:
-        deaths_mithril = re.search(r'Mithril Dieties\s*<\/a>\s*<\/td><td class="main-table-number sorting_1" style="width:30px">(\d+)', htmlString).group(1)
-    except:
-        deaths_mithril = 0
-    try:
-        deaths_feresia = re.search(r'Feresia Peith\s*<\/a>\s*<\/td><td class="main-table-number sorting_1" style="width:30px">(\d+)', htmlString).group(1)
-    except:
-        deaths_feresia = 0
-    try:
-        deaths_ralf = re.search(r'Reinhardt\s*<\/a>\s*<\/td><td class="main-table-number sorting_1" style="width:30px">(\d+)', htmlString).group(1)
-    except:
-        deaths_ralf = 0
-    
-    for i in range(2,sheet.max_row):
-        if (sheet[f"{COL_LOGS}{i}"].value is not None):
-            if (baseName in sheet[f"{COL_LOGS}{i}"].value):
-                sheet[f"{COL_DATE}{i}"] = date
-                sheet[f"{COL_WIPES}{i}"] = int(wipes)
-                sheet[f"{COL_CES}{i}"] = int(deaths_cesyanis)
-                sheet[f"{COL_JAMIE}{i}"] = int(deaths_jamie)
-                sheet[f"{COL_FAYTH}{i}"] = int(deaths_fayth)
-                sheet[f"{COL_EVE}{i}"] = int(deaths_evlesk)
-                sheet[f"{COL_KAEDE}{i}"] = int(deaths_kaede)
-                sheet[f"{COL_MITHRIL}{i}"] = int(deaths_mithril)
-                sheet[f"{COL_FERESIA}{i}"] = int(deaths_feresia)
-                sheet[f"{COL_RALF}{i}"] = int(deaths_ralf)
+        # Iterate through each fight in the report and add up the deaths.
+        fight_counter = 0
+        for fight in fights['data']['reportData']['report']['fights']:
+            fight_counter += 1
+            graphql_query = f"""
+            {{
+                reportData{{
+                    report(code: "{code}"){{
+                        table(fightIDs:{fight['id']}, endTime:{fight['endTime']}, dataType:Deaths)
+                    }}
+                }}
+            }}
+            """
+            deaths = query_fflogs(graphql_query)
+            
+            death_counter = search_through_deaths_for_name(deaths, sheet[COL_CES][0].value)
+            sheet[f"{COL_CES}{i}"] = int(death_counter) + int(sheet[f"{COL_CES}{i}"].value)
+
+            death_counter = search_through_deaths_for_name(deaths, sheet[COL_JAMIE][0].value)
+            sheet[f"{COL_JAMIE}{i}"] = int(death_counter) + int(sheet[f"{COL_JAMIE}{i}"].value)
+
+            death_counter = search_through_deaths_for_name(deaths, sheet[COL_FAYTH][0].value)
+            sheet[f"{COL_FAYTH}{i}"] = int(death_counter) + int(sheet[f"{COL_FAYTH}{i}"].value)
+
+            death_counter = search_through_deaths_for_name(deaths, sheet[COL_EVE][0].value)
+            sheet[f"{COL_EVE}{i}"] = int(death_counter) + int(sheet[f"{COL_FAYTH}{i}"].value)
+
+            death_counter = search_through_deaths_for_name(deaths, sheet[COL_KAEDE][0].value)
+            sheet[f"{COL_KAEDE}{i}"] = int(death_counter) + int(sheet[f"{COL_KAEDE}{i}"].value)
+
+            death_counter = search_through_deaths_for_name(deaths, sheet[COL_MITHRIL][0].value)
+            sheet[f"{COL_MITHRIL}{i}"] = int(death_counter) + int(sheet[f"{COL_MITHRIL}{i}"].value)
+
+            death_counter = search_through_deaths_for_name(deaths, sheet[COL_FERESIA][0].value)
+            sheet[f"{COL_FERESIA}{i}"] = int(death_counter) + int(sheet[f"{COL_FERESIA}{i}"].value)
+
+            death_counter = search_through_deaths_for_name(deaths, sheet[COL_RALF][0].value)
+            sheet[f"{COL_RALF}{i}"] = int(death_counter) + int(sheet[f"{COL_RALF}{i}"].value)
+
+        sheet[f"{COL_WIPES}{i}"] = int(fight_counter)
 
 workbook.save(logs_excel)
