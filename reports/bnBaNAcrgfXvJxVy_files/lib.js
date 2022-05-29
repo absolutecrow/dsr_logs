@@ -1,1 +1,0 @@
-var Tyche=(window.webpackJsonpTyche=window.webpackJsonpTyche||[]).push([[4],[,function(o,p,c){c("fp+T"),o.exports=c("AZoj")}],[[1,2,0]]]);

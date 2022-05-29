@@ -1,38 +1,0 @@
-
-var ftGUID_3586176="52610466B401E1";
-var ftConfID_3586176="27540208";
-var ftParams_3586176="ftx=&fty=&ftadz=&ftscw=&ft_custom=7193375_27636483_333986753&ft_section=Gaming_ftGamingtf&ftOBA=1&ft_ifb=1&ft_domain=www.fflogs.com&ft_agentEnv=0&ft_referrer=https%3A%2F%2Fwww.fflogs.com%2F&ft_keyword=Gaming_ftGamingtf&cachebuster=456277.0055025621";
-var ftKeyword_3586176="gaming,ftgamingtf";
-var ftCustom_3586176="7193375_27636483_333986753";
-var ftSection_3586176="Gaming_ftGamingtf";
-var ftSegment_3586176="";
-var ftSegmentList_3586176=[];
-var ftRuleMatch_3586176="00010000";
-var ftTimestamp_3586176="1653751857";
-var ftGeoC2_3586176="us";
-var ftGeoState_3586176="fl";
-var ftGeoCity_3586176="miami";
-var ftISP_3586176="att internet services";
-var ftSpeed_3586176="xdsl";
-var ftDMA_3586176="528";
-var ftLong_3586176="-80.35";
-var ftLat_3586176="25.61";
-var ftPostal_3586176="33157";
-var ftTimeZone_3586176="-400";
-var ftMobileCarrier_3586176="";
-var ftImp3586176 = {};
-ftImp3586176.privacy = "x";
-ftImp3586176.guidAge = "-1";
-ftImp3586176.impID = "880EEEE2-B7E7-5799-114B-5A7ADDD7EF5E";
-ftImp3586176.duid = "FT:52610466B401E1";
-
-ftImp3586176.ft_tpplid = "";
-ftImp3586176.ft_c = {};
-ftImp3586176.gdpr = "";
-ftImp3586176.gdpr_consent = "";
-ftImp3586176.gdpr_pd = "";
-ftImp3586176.oob_consent = "";
-ftImp3586176.gdprStoredConsent = "";
-ftImp3586176.us_privacy = "";
-
-document.write('<scr'+'ipt src="https://cdn.flashtalking.com/xre/358/3586176/3337453/js/j-3586176-3337453.js" id="ftscript_m3586176" name="ftscript_m3586176"></scr'+'ipt>');
