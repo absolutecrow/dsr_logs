@@ -81,13 +81,27 @@ for i in range(2,sheet.max_row):
         }}
         """
         print(f"Processing {code}")
-        fights = query_fflogs(graphql_query) # Query against the FF Logs api to obtain the fights in the URL
+
+        try:
+            fights = query_fflogs(graphql_query) # Query against the FF Logs api to obtain the fights in the URL
+        except:
+            fights = query_fflogs(graphql_query)
 
         # Extract and Store the date in the Excel Sheet column C
         local_timezone = tzlocal.get_localzone()
         unix_timestamp = float(fights['data']['reportData']['report']['startTime'])/1000
         local_time = datetime.fromtimestamp(unix_timestamp, local_timezone)
         sheet[f"{COL_DATE}{i}"] = local_time.strftime(r"%m/%d/%Y")
+
+        # Preparing the Excel before processing fights.
+        sheet[f"{COL_CES}{i}"] = int(0)
+        sheet[f"{COL_JAMIE}{i}"] = int(0)
+        sheet[f"{COL_FAYTH}{i}"] = int(0)
+        sheet[f"{COL_EVE}{i}"] = int(0)
+        sheet[f"{COL_KAEDE}{i}"] = int(0)
+        sheet[f"{COL_MITHRIL}{i}"] = int(0)
+        sheet[f"{COL_FERESIA}{i}"] = int(0)
+        sheet[f"{COL_RALF}{i}"] = int(0)
 
         # Iterate through each fight in the report and add up the deaths.
         fight_counter = 0
@@ -102,7 +116,10 @@ for i in range(2,sheet.max_row):
                 }}
             }}
             """
-            deaths = query_fflogs(graphql_query)
+            try:
+                deaths = query_fflogs(graphql_query)
+            except:
+                deaths = query_fflogs(graphql_query)
             
             death_counter = search_through_deaths_for_name(deaths, sheet[COL_CES][0].value)
             sheet[f"{COL_CES}{i}"] = int(death_counter) + int(sheet[f"{COL_CES}{i}"].value)
@@ -114,7 +131,7 @@ for i in range(2,sheet.max_row):
             sheet[f"{COL_FAYTH}{i}"] = int(death_counter) + int(sheet[f"{COL_FAYTH}{i}"].value)
 
             death_counter = search_through_deaths_for_name(deaths, sheet[COL_EVE][0].value)
-            sheet[f"{COL_EVE}{i}"] = int(death_counter) + int(sheet[f"{COL_FAYTH}{i}"].value)
+            sheet[f"{COL_EVE}{i}"] = int(death_counter) + int(sheet[f"{COL_EVE}{i}"].value)
 
             death_counter = search_through_deaths_for_name(deaths, sheet[COL_KAEDE][0].value)
             sheet[f"{COL_KAEDE}{i}"] = int(death_counter) + int(sheet[f"{COL_KAEDE}{i}"].value)
