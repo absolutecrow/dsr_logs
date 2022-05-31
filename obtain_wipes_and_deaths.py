@@ -64,7 +64,7 @@ access_token = obtain_access_token()
 for i in range(3,sheet.max_row):
     current_location = f"{COL_LOGS}{i}"
 
-    if (sheet[current_location].value is not None):
+    if ((sheet[current_location].value is not None) and (sheet[f"{COL_AVERAGE_FIGHT_PERCENTAGE}{i}"].value is None)):
 
         # Iterate through the excel sheet url to obtain the URL of reach report.
         code = re.search(r"reports\/(.+)\/", sheet[current_location].value).group(1)
