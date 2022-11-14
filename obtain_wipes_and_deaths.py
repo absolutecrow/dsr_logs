@@ -185,7 +185,7 @@ for i in range(3,sheet.max_row):
             death_counter = search_through_deaths_for_name(deaths, "Feresia Peith")
             sheet[f"{COL_FERESIA}{i}"] = int(death_counter) + int(sheet[f"{COL_FERESIA}{i}"].value)
 
-            death_counter = search_through_deaths_for_name(deaths, "Ra'nulf Reinhardt")
+            death_counter = search_through_deaths_for_name(deaths, "Ralphonso Deluxe")
             sheet[f"{COL_RALF}{i}"] = int(death_counter) + int(sheet[f"{COL_RALF}{i}"].value)
 
         sheet[f"{COL_WIPES}{i}"] = int(fight_counter)
