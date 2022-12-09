@@ -65,6 +65,7 @@ COL_PHASE4 = 'R'
 COL_PHASE_INT = 'S'
 COL_PHASE5 = 'T'
 COL_PHASE6 = 'U'
+COL_PHASE7 = 'V'
 
 access_token = obtain_access_token()
 
@@ -125,6 +126,7 @@ for i in range(3,sheet.max_row):
         int_wipe_counter = 0
         p5_wipe_counter = 0
         p6_wipe_counter = 0
+        p7_wipe_counter = 0
 
         for fight in fights['data']['reportData']['report']['fights']:
             fight_counter += 1
@@ -149,6 +151,8 @@ for i in range(3,sheet.max_row):
                     p5_wipe_counter += 1
                 case 6:
                     p6_wipe_counter += 1
+                case 7:
+                    p7_wipe_counter += 1
 
             graphql_query = f"""
             {{
@@ -198,5 +202,6 @@ for i in range(3,sheet.max_row):
         sheet[f"{COL_PHASE_INT}{i}"] = int(int_wipe_counter)
         sheet[f"{COL_PHASE5}{i}"] = int(p5_wipe_counter)
         sheet[f"{COL_PHASE6}{i}"] = int(p6_wipe_counter)
+        sheet[f"{COL_PHASE7}{i}"] = int(p7_wipe_counter)
 
 workbook.save(logs_excel)
